@@ -6,7 +6,10 @@ import (
 )
 
 func main() {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		//1 GB
+		BodyLimit: 1024 * 1024 * 1024,
+	})
 
 	media.MountController(app.Group("/media"))
 
