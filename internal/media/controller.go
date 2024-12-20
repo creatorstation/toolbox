@@ -2,18 +2,22 @@ package media
 
 // Import resty into your code and refer it as `resty`.
 import (
+	"bytes"
+	"fmt"
 	"log"
 
 	"github.com/creatorstation/toolbox/pkg/convert"
+	"github.com/creatorstation/toolbox/pkg/convert/img"
 	"github.com/gofiber/fiber/v2"
 )
 
 func MountController(router fiber.Router) {
 	router.Post("/mp4-to-mp3", ConvertMP4ToMP3)
+	router.Post("/resize-image", ResizeImage)
 }
 
 func ConvertMP4ToMP3(c *fiber.Ctx) error {
-	var body ConvertMP4ToMP3Body
+	var body MediaURLBody
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -49,4 +53,39 @@ func ConvertMP4ToMP3(c *fiber.Ctx) error {
 	log.Printf("MP4 Size: %dMB | MP3 Size: %dMB", len(mp4)/1024/1024, len(mp3)/1024/1024)
 
 	return c.Status(fiber.StatusOK).Send(mp3)
+}
+
+func ResizeImage(c *fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	fileContent, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	defer fileContent.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(fileContent)
+
+	jpegImage := convert.JPEG(buf.Bytes())
+
+	resized, err := img.Downscale(&jpegImage, 24.0)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	fmt.Println("Before", len(jpegImage), "After", len(*resized))
+
+	c.Response().Header.SetContentType("image/jpeg")
+	return c.Status(fiber.StatusOK).Send(*resized)
 }
