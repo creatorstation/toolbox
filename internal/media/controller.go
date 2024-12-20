@@ -75,9 +75,16 @@ func ResizeImage(c *fiber.Ctx) error {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(fileContent)
 
-	jpegImage := convert.JPEG(buf.Bytes())
+	contentType := file.Header.Get("Content-Type")
+	jpegImage := convert.JPEG(buf.Bytes(), contentType == "image/heic")
 
-	resized, err := img.Downscale(&jpegImage, 24.0)
+	downscaleTo := 23.0
+
+	if contentType == "image/heic" {
+		downscaleTo = 5.0
+	}
+
+	resized, err := img.Downscale(&jpegImage, downscaleTo)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
