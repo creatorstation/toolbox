@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/creatorstation/toolbox/pkg/convert"
-	"github.com/creatorstation/toolbox/pkg/convert/img"
+	"github.com/creatorstation/toolbox/pkg/img"
 	"github.com/gofiber/fiber/v2"
 )
 
