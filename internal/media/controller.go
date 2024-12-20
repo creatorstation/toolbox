@@ -75,12 +75,12 @@ func ResizeImage(c *fiber.Ctx) error {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(fileContent)
 
-	contentType := file.Header.Get("Content-Type")
-	jpegImage := convert.JPEG(buf.Bytes(), contentType == "image/heic")
+	isHEIF := file.Header.Get("Content-Type") == "image/heif" || file.Header.Get("Content-Type") == "image/heic"
+	jpegImage := convert.JPEG(buf.Bytes(), isHEIF)
 
 	downscaleTo := 23.0
 
-	if contentType == "image/heic" {
+	if isHEIF {
 		downscaleTo = 5.0
 	}
 
