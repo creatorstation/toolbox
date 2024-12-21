@@ -5,12 +5,22 @@ import (
 
 	"github.com/creatorstation/toolbox/internal/media"
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/exp/rand"
 )
 
 func main() {
 	app := fiber.New(fiber.Config{
 		//1 GB
 		BodyLimit: 1024 * 1024 * 1024,
+	})
+
+	app.Get("/health", func(c *fiber.Ctx) error {
+		randNum := rand.Intn(100)
+
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"rand":   randNum,
+		})
 	})
 
 	media.MountController(app.Group("/media"))
