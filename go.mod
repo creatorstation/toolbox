@@ -2,7 +2,10 @@ module github.com/creatorstation/toolbox
 
 go 1.23.3
 
-require github.com/sunshineplan/imgconv v1.1.12
+require (
+	github.com/sunshineplan/imgconv v1.1.12
+	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
+)
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
