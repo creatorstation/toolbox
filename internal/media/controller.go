@@ -14,6 +14,7 @@ import (
 func MountController(router fiber.Router) {
 	router.Post("/mp4-to-mp3", ConvertMP4ToMP3)
 	router.Post("/resize-image", ResizeImage)
+	router.Post("/quicktime-to-mp4", ConvertQuicktimeToMP4)
 }
 
 func ConvertMP4ToMP3(c *fiber.Ctx) error {
@@ -95,4 +96,35 @@ func ResizeImage(c *fiber.Ctx) error {
 
 	c.Response().Header.SetContentType("image/jpeg")
 	return c.Status(fiber.StatusOK).Send(*resized)
+}
+
+func ConvertQuicktimeToMP4(c *fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	fileContent, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	defer fileContent.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(fileContent)
+
+	mp4, err := convert.ConvertQuicktimeToMP4(buf.Bytes())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	c.Response().Header.SetContentType("video/mp4")
+	return c.Status(fiber.StatusOK).Send(mp4)
 }
