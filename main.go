@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/creatorstation/toolbox/internal/media"
+	"github.com/creatorstation/toolbox/internal/misc"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/exp/rand"
 )
@@ -24,6 +25,7 @@ func main() {
 	})
 
 	media.MountController(app.Group("/media"))
+	misc.MountController(app.Group("/misc"))
 
 	fmt.Println("Server is running on :8080")
 
