@@ -41,7 +41,7 @@ func ConvertSlidesToPPTX(c *fiber.Ctx) error {
 		})
 	}
 
-	// generate a string for the path of the pptx file
+	// generating a string for the path of the pptx file
 	fileName := str.RandomString(10)
 	pptxPath := filepath.Join(tempDir, fileName)
 
