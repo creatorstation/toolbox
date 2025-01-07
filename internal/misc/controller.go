@@ -1,11 +1,71 @@
 package misc
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"bytes"
+	"os"
+	"path/filepath"
+
+	"github.com/creatorstation/toolbox/pkg/str"
+	"github.com/gofiber/fiber/v2"
+)
 
 func MountController(router fiber.Router) {
 	router.Post("/slides-to-pptx", ConvertSlidesToPPTX)
 }
 
 func ConvertSlidesToPPTX(c *fiber.Ctx) error {
-	return c.SendString("Hello, World!")
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	fileContent, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	defer fileContent.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(fileContent)
+
+	// creating a temporary directory in case of multiple files are being processed with the same name
+	tempDir, err := os.MkdirTemp("", "slides-to-pptx-*")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// generate a string for the path of the pptx file
+	fileName := str.RandomString(10)
+	pptxPath := filepath.Join(tempDir, fileName)
+
+	os.WriteFile(pptxPath, buf.Bytes(), 0644)
+
+	if err := EmbedVideos(pptxPath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	respFile, err := os.ReadFile(pptxPath)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	if err := os.RemoveAll(tempDir); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	c.Context().SetContentType("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+	return c.Status(fiber.StatusOK).Send(respFile)
 }
