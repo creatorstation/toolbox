@@ -9,6 +9,7 @@ import (
 	"github.com/creatorstation/toolbox/pkg/convert"
 	"github.com/creatorstation/toolbox/pkg/img"
 	"github.com/creatorstation/toolbox/pkg/video"
+	"github.com/creatorstation/toolbox/pkg/web"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -35,14 +36,13 @@ func ConvertMP4ToMP3(c *fiber.Ctx) error {
 
 	log.Printf("Converting MP4 to MP3: %s", body.MediaURI)
 
-	mp4, err := fetchMedia(body.MediaURI)
+	mp4, err := web.FetchMedia(body.MediaURI)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	// Convert the MP4 file to MP3.
 	mp3, err := convert.ConvertMP4ToMP3(mp4)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -50,7 +50,6 @@ func ConvertMP4ToMP3(c *fiber.Ctx) error {
 		})
 	}
 
-	// Return the MP3 file.
 	c.Context().SetContentType("audio/mpeg")
 
 	log.Printf("MP4 Size: %dMB | MP3 Size: %dMB", len(mp4)/1024/1024, len(mp3)/1024/1024)
