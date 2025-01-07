@@ -51,9 +51,6 @@ func ConvertMP4ToMP3(c *fiber.Ctx) error {
 	}
 
 	c.Context().SetContentType("audio/mpeg")
-
-	log.Printf("MP4 Size: %dMB | MP3 Size: %dMB", len(mp4)/1024/1024, len(mp3)/1024/1024)
-
 	return c.Status(fiber.StatusOK).Send(mp3)
 }
 
@@ -95,7 +92,7 @@ func ResizeImage(c *fiber.Ctx) error {
 
 	fmt.Println("Before", len(jpegImage), "After", len(*resized))
 
-	c.Response().Header.SetContentType("image/jpeg")
+	c.Context().SetContentType("image/jpeg")
 	return c.Status(fiber.StatusOK).Send(*resized)
 }
 
@@ -126,7 +123,7 @@ func ConvertQuicktimeToMP4(c *fiber.Ctx) error {
 		})
 	}
 
-	c.Response().Header.SetContentType("video/mp4")
+	c.Context().SetContentType("video/mp4")
 	return c.Status(fiber.StatusOK).Send(mp4)
 }
 
@@ -157,6 +154,6 @@ func GenerateThumbnail(c *fiber.Ctx) error {
 		})
 	}
 
-	c.Response().Header.SetContentType("image/jpeg")
+	c.Context().SetContentType("image/jpeg")
 	return c.Status(fiber.StatusOK).Send(thumbnail)
 }
