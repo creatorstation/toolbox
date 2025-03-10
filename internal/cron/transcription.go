@@ -44,8 +44,8 @@ func SetupTranscriptionCron() {
 	log.Println("Transcription cron job scheduled to run at 5 AM Istanbul time")
 }
 
-func MountController(router fiber.Router) {
-	router.Post("/cron/transcription/run", func(c *fiber.Ctx) error {
+func MountPostController(router fiber.Router) {
+	router.Post("/run-post-transcription", func(c *fiber.Ctx) error {
 		go runTranscriptionJob()
 		return c.JSON(fiber.Map{
 			"message": "Transcription job started",
