@@ -4,12 +4,14 @@ go 1.23.3
 
 require (
 	github.com/sunshineplan/imgconv v1.1.12
+	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	gorm.io/gorm v1.25.12
 )
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
+	github.com/golang/snappy v0.0.1 // indirect
 	github.com/hhrutter/lzw v1.0.0 // indirect
 	github.com/hhrutter/tiff v1.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -19,10 +21,15 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pdfcpu/pdfcpu v0.9.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sunshineplan/pdf v1.0.7 // indirect
+	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
+	github.com/xdg-go/scram v1.1.2 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
+	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/image v0.23.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
