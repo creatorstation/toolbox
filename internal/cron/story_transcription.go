@@ -111,8 +111,6 @@ func getStoriesForTranscription() ([]Story, error) {
 		return nil, err
 	}
 
-	log.Printf("Found %d stories to transcribe", len(stories))
-
 	return stories, nil
 }
 
