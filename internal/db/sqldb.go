@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -33,8 +32,6 @@ func Connect() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-
-	fmt.Println("Connected to database")
 }
 
 func GetDB() *gorm.DB {
