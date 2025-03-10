@@ -31,7 +31,10 @@ func main() {
 	fmt.Println("Server is running on :8080")
 
 	cron.SetupTranscriptionCron()
-	cron.MountController(app.Group("/cron"))
+	cron.SetupStoryTranscriptionCron()
+
+	cron.MountPostController(app.Group("/cron"))
+	cron.MountStoryController(app.Group("/cron"))
 
 	app.Listen(":8080")
 }
