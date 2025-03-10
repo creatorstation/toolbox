@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/creatorstation/toolbox/internal/cron"
 	"github.com/creatorstation/toolbox/internal/media"
 	"github.com/creatorstation/toolbox/internal/misc"
 	"github.com/gofiber/fiber/v2"
@@ -28,6 +29,9 @@ func main() {
 	misc.MountController(app.Group("/misc"))
 
 	fmt.Println("Server is running on :8080")
+
+	cron.SetupTranscriptionCron()
+	cron.MountController(app.Group("/cron"))
 
 	app.Listen(":8080")
 }
