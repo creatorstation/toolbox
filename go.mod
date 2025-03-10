@@ -3,6 +3,7 @@ module github.com/creatorstation/toolbox
 go 1.23.3
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/sunshineplan/imgconv v1.1.12
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
