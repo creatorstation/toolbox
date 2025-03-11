@@ -9,10 +9,12 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/creatorstation/toolbox/internal/db"
+	"github.com/creatorstation/toolbox/pkg/convert"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/robfig/cron/v3"
@@ -150,22 +152,24 @@ func processStory(story Story) {
 		}
 	} else {
 		// Convert to MP3 first
-		mp3URL, err := convertStoryToMP3(videoURL)
+		mp3FilePath, err := convertStoryToMP3(videoURL)
 		if err != nil {
 			log.Printf("Error converting to MP3 for story ID %s: %v", story.StoryID, err)
 			return
 		}
 
-		// Download MP3
-		client := resty.New()
-		resp, err := client.R().Get(mp3URL)
+		// Read the MP3 file
+		mp3Data, err := os.ReadFile(mp3FilePath)
 		if err != nil {
-			log.Printf("Error downloading MP3 for story ID %s: %v", story.StoryID, err)
+			log.Printf("Error reading MP3 file for story ID %s: %v", story.StoryID, err)
 			return
 		}
 
+		// Clean up the temporary file
+		defer os.Remove(mp3FilePath)
+
 		// Transcribe MP3
-		transcriptionText, err = transcribeStoryAudio(resp.Body())
+		transcriptionText, err = transcribeStoryAudio(mp3Data)
 		if err != nil {
 			log.Printf("Error transcribing MP3 for story ID %s: %v", story.StoryID, err)
 			return
@@ -196,39 +200,37 @@ func getVideoSize(url string) (int64, error) {
 	return contentLength, nil
 }
 
-// convertStoryToMP3 converts a video to MP3 using the external service
+// convertStoryToMP3 converts a video to MP3 using the local conversion function
 func convertStoryToMP3(videoURL string) (string, error) {
+	// Download the video
 	client := resty.New()
-
-	// Prepare request to the MP4 to MP3 conversion service
-	resp, err := client.R().
-		SetHeader("x-api-key", "gufdviesw87ry4t5uhgfdijresw839r457tuy3r29iewjokdfruhgtby5438i9e").
-		SetBody(map[string]string{
-			"media_uri": videoURL,
-		}).
-		Post("https://cs-toolbox-449168770512.us-central1.run.app/media/mp4-to-mp3")
-
+	resp, err := client.R().Get(videoURL)
 	if err != nil {
-		return "", fmt.Errorf("error calling MP4 to MP3 service: %v", err)
+		return "", fmt.Errorf("error downloading video: %v", err)
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return "", fmt.Errorf("MP4 to MP3 service returned status code %d", resp.StatusCode())
+	// Convert to MP3 using local function
+	mp3Data, err := convert.ConvertMP4ToMP3(resp.Body())
+	if err != nil {
+		return "", fmt.Errorf("error converting to MP3: %v", err)
 	}
 
-	// Parse the response to get the MP3 URL
-	var result map[string]interface{}
-	if err := json.Unmarshal(resp.Body(), &result); err != nil {
-		fmt.Println("Error parsing MP3 service response for url: ", videoURL)
-		return "", fmt.Errorf("error parsing MP3 service response: %v", err)
+	// Create a temporary file to store the MP3
+	tempFile, err := os.CreateTemp("", "story-converted-*.mp3")
+	if err != nil {
+		return "", fmt.Errorf("error creating temp file: %v", err)
+	}
+	defer tempFile.Close()
+
+	// Write MP3 data to the temp file
+	_, err = tempFile.Write(mp3Data)
+	if err != nil {
+		os.Remove(tempFile.Name())
+		return "", fmt.Errorf("error writing to temp file: %v", err)
 	}
 
-	mp3URL, ok := result["url"].(string)
-	if !ok {
-		return "", fmt.Errorf("MP3 URL not found in response")
-	}
-
-	return mp3URL, nil
+	// Return the path to the temp file
+	return tempFile.Name(), nil
 }
 
 // transcribeStoryAudio transcribes audio data
