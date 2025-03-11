@@ -132,23 +132,20 @@ func processPost(post models.InfluencerPost) {
 			return
 		}
 	} else {
-		// Convert to MP3 first
-		mp3URL, err := convertToMP3(post.VideoURL)
+		mp3FilePath, err := convertToMP3(post.VideoURL)
 		if err != nil {
 			log.Printf("Error converting to MP3 for post ID %s: %v", post.ID, err)
 			return
 		}
 
-		// Download MP3
-		client := resty.New()
-		resp, err := client.R().Get(mp3URL)
+		mp3Data, err := os.ReadFile(mp3FilePath)
 		if err != nil {
-			log.Printf("Error downloading MP3 for post ID %s: %v", post.ID, err)
+			log.Printf("Error reading MP3 file for post ID %s: %v", post.ID, err)
 			return
 		}
+		defer os.Remove(mp3FilePath)
 
-		// Transcribe MP3
-		transcriptionText, err = transcribeAudio(resp.Body())
+		transcriptionText, err = transcribeAudio(mp3Data)
 		if err != nil {
 			log.Printf("Error transcribing MP3 for post ID %s: %v", post.ID, err)
 			return
