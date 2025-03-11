@@ -219,7 +219,7 @@ func convertStoryToMP3(videoURL string) (string, error) {
 	// Parse the response to get the MP3 URL
 	var result map[string]interface{}
 	if err := json.Unmarshal(resp.Body(), &result); err != nil {
-		fmt.Println("Error parsing MP3 service response for url: ", videoURL, "resp: ", resp.String())
+		fmt.Println("Error parsing MP3 service response for url: ", videoURL)
 		return "", fmt.Errorf("error parsing MP3 service response: %v", err)
 	}
 
