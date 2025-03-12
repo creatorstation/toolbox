@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/creatorstation/toolbox/internal/cron"
+	"github.com/creatorstation/toolbox/internal/appcron"
 	"github.com/creatorstation/toolbox/internal/media"
 	"github.com/creatorstation/toolbox/internal/misc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"golang.org/x/exp/rand"
 )
+
+func a() {
+
+}
 
 func main() {
 	err := godotenv.Load()
@@ -38,11 +42,11 @@ func main() {
 
 	fmt.Println("Server is running on :8080")
 
-	cron.SetupTranscriptionCron()
-	cron.SetupStoryTranscriptionCron()
+	appcron.SetupTranscriptionCron()
+	appcron.SetupStoryTranscriptionCron()
 
-	cron.MountPostController(app.Group("/cron"))
-	cron.MountStoryController(app.Group("/cron"))
+	appcron.MountPostController(app.Group("/cron"))
+	appcron.MountStoryController(app.Group("/cron"))
 
 	app.Listen(":8080")
 }
