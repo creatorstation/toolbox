@@ -42,7 +42,7 @@ func main() {
 
 	fmt.Println("Server is running on :8080")
 
-	appcron.SetupTranscriptionCron()
+	appcron.SetupPostTranscriptionCron()
 	appcron.SetupStoryTranscriptionCron()
 
 	appcron.MountPostController(app.Group("/cron"))

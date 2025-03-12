@@ -1,20 +1,13 @@
 package appcron
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"mime/multipart"
-	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/creatorstation/toolbox/internal/db"
-	"github.com/creatorstation/toolbox/pkg/convert"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/robfig/cron/v3"
@@ -38,21 +31,16 @@ func SetupStoryTranscriptionCron() {
 	// Connect to MongoDB
 	db.ConnectMongo()
 
-	istanbulLoc, err := time.LoadLocation("Europe/Istanbul")
-	if err != nil {
-		log.Fatalf("Failed to load timezone: %v", err)
-	}
+	c := cron.New()
 
-	c := cron.New(cron.WithLocation(istanbulLoc))
-
-	// Schedule the job to run at 5 AM Istanbul time
-	_, err = c.AddFunc("0 5 * * *", runStoryTranscriptionJob)
+	// Schedule the job to run every 6 hours
+	_, err := c.AddFunc("0 */6 * * *", runStoryTranscriptionJob)
 	if err != nil {
 		log.Fatalf("Failed to add story transcription cron job: %v", err)
 	}
 
 	c.Start()
-	log.Println("Story transcription cron job scheduled to run at 5 AM Istanbul time")
+	log.Println("Story transcription cron job scheduled to run every 6 hours")
 }
 
 // MountStoryController mounts the story transcription controller
@@ -145,14 +133,14 @@ func processStory(story Story) {
 			return
 		}
 
-		transcriptionText, err = transcribeStoryAudio(resp.Body())
+		transcriptionText, err = TranscribeAudio(resp.Body(), "https://go-whisper-2-449168770512.us-central1.run.app/v1/audio/transcriptions")
 		if err != nil {
 			log.Printf("Error transcribing audio for story ID %s: %v", story.StoryID, err)
 			return
 		}
 	} else {
 		// Convert to MP3 first
-		mp3FilePath, err := convertStoryToMP3(videoURL)
+		mp3FilePath, err := convertToMP3(videoURL)
 		if err != nil {
 			log.Printf("Error converting to MP3 for story ID %s: %v", story.StoryID, err)
 			return
@@ -169,7 +157,7 @@ func processStory(story Story) {
 		defer os.Remove(mp3FilePath)
 
 		// Transcribe MP3
-		transcriptionText, err = transcribeStoryAudio(mp3Data)
+		transcriptionText, err = TranscribeAudio(mp3Data, "https://go-whisper-2-449168770512.us-central1.run.app/v1/audio/transcriptions")
 		if err != nil {
 			log.Printf("Error transcribing MP3 for story ID %s: %v", story.StoryID, err)
 			return
@@ -184,117 +172,6 @@ func processStory(story Story) {
 	}
 
 	log.Printf("Successfully transcribed story ID: %s", story.StoryID)
-}
-
-// getVideoSize checks the size of a video without downloading it
-func getVideoSize(url string) (int64, error) {
-	client := resty.New()
-	resp, err := client.R().Head(url)
-	if err != nil {
-		return 0, err
-	}
-
-	contentLengthStr := resp.Header().Get("Content-Length")
-	contentLength, _ := strconv.ParseInt(contentLengthStr, 10, 64)
-
-	return contentLength, nil
-}
-
-// convertStoryToMP3 converts a video to MP3 using the local conversion function
-func convertStoryToMP3(videoURL string) (string, error) {
-	// Download the video
-	client := resty.New()
-	resp, err := client.R().Get(videoURL)
-	if err != nil {
-		return "", fmt.Errorf("error downloading video: %v", err)
-	}
-
-	// Convert to MP3 using local function
-	mp3Data, err := convert.ConvertMP4ToMP3(resp.Body())
-	if err != nil {
-		return "", fmt.Errorf("error converting to MP3: %v", err)
-	}
-
-	// Create a temporary file to store the MP3
-	tempFile, err := os.CreateTemp("", "story-converted-*.mp3")
-	if err != nil {
-		return "", fmt.Errorf("error creating temp file: %v", err)
-	}
-	defer tempFile.Close()
-
-	// Write MP3 data to the temp file
-	_, err = tempFile.Write(mp3Data)
-	if err != nil {
-		os.Remove(tempFile.Name())
-		return "", fmt.Errorf("error writing to temp file: %v", err)
-	}
-
-	// Return the path to the temp file
-	return tempFile.Name(), nil
-}
-
-// transcribeStoryAudio transcribes audio data
-func transcribeStoryAudio(audioData []byte) (string, error) {
-	// Create a buffer to write the multipart form
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-
-	// Add the model parameter
-	err := w.WriteField("model", "ggml-large-v3-turbo")
-	if err != nil {
-		return "", err
-	}
-
-	// Create a form file for the audio data
-	fw, err := w.CreateFormFile("file", "audio.mp3")
-	if err != nil {
-		return "", err
-	}
-
-	// Write the audio data to the form file
-	_, err = io.Copy(fw, bytes.NewReader(audioData))
-	if err != nil {
-		return "", err
-	}
-
-	// Close the writer
-	w.Close()
-
-	// Create the request
-	req, err := http.NewRequest("POST", "https://go-whisper-2-449168770512.us-central1.run.app/v1/audio/transcriptions", &b)
-	if err != nil {
-		return "", err
-	}
-
-	// Set the content type
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to transcribe audio: %s", string(respBody))
-	}
-
-	// Parse the response
-	var result TranscriptionResponse
-	err = json.Unmarshal(respBody, &result)
-	if err != nil {
-		return "", err
-	}
-
-	return result.Text, nil
 }
 
 // updateStoryTranscription updates the transcription for a story
