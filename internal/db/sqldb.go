@@ -13,7 +13,7 @@ import (
 var db_ *gorm.DB
 
 // Connect establishes a connection to the database
-func Connect() {
+func ConnectPG() {
 	dsn := os.Getenv("SUPABASE_DSN")
 
 	newLogger := logger.New(
@@ -34,6 +34,6 @@ func Connect() {
 	}
 }
 
-func GetDB() *gorm.DB {
+func GetPGDB() *gorm.DB {
 	return db_
 }

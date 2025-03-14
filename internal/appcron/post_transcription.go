@@ -16,7 +16,7 @@ type TranscriptionResponse struct {
 }
 
 func SetupPostTranscriptionCron() {
-	db.Connect()
+	db.ConnectPG()
 
 	c := cron.New()
 
@@ -65,7 +65,7 @@ func getPostsForTranscription() ([]models.InfluencerPost, error) {
 	var posts []models.InfluencerPost
 
 	// Query to get posts that need transcription
-	result := db.GetDB().
+	result := db.GetPGDB().
 		Table("n8n_influencer_posts p").
 		Joins("LEFT JOIN n8n_influencer_accounts a ON p.account_id = a.id").
 		Where("a.collect_stories = true").
@@ -151,5 +151,5 @@ func processPost(post models.InfluencerPost) {
 
 // updatePostTranscription updates the transcription for a post
 func updatePostTranscription(postID string, transcription string) error {
-	return db.GetDB().Table("n8n_influencer_posts").Where("id = ?", postID).Update("transcription", transcription).Error
+	return db.GetPGDB().Table("n8n_influencer_posts").Where("id = ?", postID).Update("transcription", transcription).Error
 }
