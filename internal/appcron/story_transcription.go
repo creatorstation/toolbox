@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/creatorstation/toolbox/internal/db"
@@ -163,6 +164,9 @@ func processStory(story Story) {
 			return
 		}
 	}
+
+	// Replace "Altyazı M.K." with a dot character
+	transcriptionText = strings.Replace(transcriptionText, "Altyazı M.K.", ".", -1)
 
 	// Update story with transcription
 	err = updateStoryTranscription(story.StoryID, transcriptionText)

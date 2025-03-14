@@ -3,6 +3,7 @@ package appcron
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/creatorstation/toolbox/internal/db"
 	"github.com/creatorstation/toolbox/internal/models"
@@ -138,6 +139,9 @@ func processPost(post models.InfluencerPost) {
 			return
 		}
 	}
+
+	// Replace "Altyazı M.K." with a dot character
+	transcriptionText = strings.Replace(transcriptionText, "Altyazı M.K.", ".", -1)
 
 	// Update post with transcription
 	err = updatePostTranscription(post.ID, transcriptionText)
