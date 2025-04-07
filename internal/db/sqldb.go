@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -14,6 +15,7 @@ var db_ *gorm.DB
 
 // Connect establishes a connection to the database
 func ConnectPG() {
+	fmt.Println("Connecting to PostgreSQL")
 	dsn := os.Getenv("SUPABASE_DSN")
 
 	newLogger := logger.New(
@@ -32,6 +34,8 @@ func ConnectPG() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
+	fmt.Println("Connected to PostgreSQL")
 }
 
 func GetPGDB() *gorm.DB {

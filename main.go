@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/creatorstation/toolbox/internal/appcron"
@@ -11,10 +12,6 @@ import (
 	"github.com/joho/godotenv"
 	"golang.org/x/exp/rand"
 )
-
-func a() {
-
-}
 
 func main() {
 	err := godotenv.Load()
@@ -40,13 +37,12 @@ func main() {
 	media.MountController(app.Group("/media"))
 	misc.MountController(app.Group("/misc"))
 
-	fmt.Println("Server is running on :8080")
-
 	appcron.SetupPostTranscriptionCron()
 	appcron.SetupStoryTranscriptionCron()
 
 	appcron.MountPostController(app.Group("/cron"))
 	appcron.MountStoryController(app.Group("/cron"))
 
-	app.Listen(":8080")
+	fmt.Println("Server is running on :8080")
+	log.Fatal(app.Listen(":8080"))
 }

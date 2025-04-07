@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/joho/godotenv v1.5.1
+	github.com/playwright-community/playwright-go v0.5001.0
 	github.com/sunshineplan/imgconv v1.1.12
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
@@ -12,6 +13,9 @@ require (
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
+	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hhrutter/lzw v1.0.0 // indirect
@@ -22,7 +26,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pdfcpu/pdfcpu v0.9.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
