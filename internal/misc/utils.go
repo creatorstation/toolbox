@@ -24,7 +24,6 @@ func init() {
 		log.Fatalf("Failed to initialize cache: %v", err)
 	}
 
-	// Install Playwright browsers
 	if err := installPlaywrightBrowsers(); err != nil {
 		log.Fatalf("Failed to install Playwright browsers: %v", err)
 	}
@@ -58,7 +57,6 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 	defer pw.Stop()
 	defer browser.Close()
 
-	// Create a new browser context
 	context, err := browser.NewContext(playwright.BrowserNewContextOptions{
 		DeviceScaleFactor: playwright.Float(2.0),
 	})
@@ -67,13 +65,11 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 	}
 	defer context.Close()
 
-	// Create a new page
 	page, err := context.NewPage()
 	if err != nil {
 		return nil, fmt.Errorf("could not create page: %w", err)
 	}
 
-	// Set authorization header
 	err = page.SetExtraHTTPHeaders(map[string]string{
 		"Authorization": os.Getenv("AGI_TOKEN"),
 	})
@@ -81,25 +77,26 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 		return nil, fmt.Errorf("could not set headers: %w", err)
 	}
 
-	// Navigate to URL
 	url := fmt.Sprintf(targetURL, username)
 	if _, err = page.Goto(url); err != nil {
 		return nil, fmt.Errorf("could not navigate to page: %w", err)
 	}
 
-	// Wait for the network request completion
 	if err := waitForCategoryResponse(page); err != nil {
 		return nil, err
 	}
 
-	// Wait for the element to be visible
 	selector := fmt.Sprintf("#%s", elementID)
 	elementHandle, err := page.WaitForSelector(selector)
 	if err != nil {
 		return nil, fmt.Errorf("could not find element: %w", err)
 	}
 
-	// Take screenshot of the specific element
+	_, err = elementHandle.EvalOnSelectorAll("h5", "h5Elements => h5Elements.forEach(h5 => h5.remove())")
+	if err != nil {
+		return nil, fmt.Errorf("could not remove h5 elements: %w", err)
+	}
+
 	screenshot, err := elementHandle.Screenshot(playwright.ElementHandleScreenshotOptions{
 		Scale: playwright.ScreenshotScaleDevice,
 	})
@@ -138,7 +135,6 @@ func waitForCategoryResponse(page playwright.Page) error {
 		}
 	})
 
-	// Wait for category endpoint response or timeout
 	select {
 	case <-responseChan:
 		return nil
@@ -173,7 +169,6 @@ func initCache() error {
 		mu:        sync.RWMutex{},
 	}
 
-	// Start a goroutine to clean expired cache items
 	go cleanExpiredCache()
 	return nil
 }
