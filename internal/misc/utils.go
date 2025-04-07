@@ -19,8 +19,6 @@ const (
 	targetURL           = "https://agi.creatorstation.com/influencers/%s?tab=3"
 )
 
-var agiToken = os.Getenv("AGI_TOKEN")
-
 func init() {
 	if err := initCache(); err != nil {
 		log.Fatalf("Failed to initialize cache: %v", err)
@@ -77,7 +75,7 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 
 	// Set authorization header
 	err = page.SetExtraHTTPHeaders(map[string]string{
-		"Authorization": agiToken,
+		"Authorization": os.Getenv("AGI_TOKEN"),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not set headers: %w", err)
