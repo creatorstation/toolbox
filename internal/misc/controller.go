@@ -56,12 +56,6 @@ func ConvertSlidesToPPTX(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := ReSavePPTX(pptxPath); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
 	respFile, err := os.ReadFile(pptxPath)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
