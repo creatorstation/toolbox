@@ -38,10 +38,10 @@ func main() {
 	misc.MountController(app.Group("/misc"))
 
 	appcron.SetupPostTranscriptionCron()
-	appcron.SetupStoryTranscriptionCron()
+	// appcron.SetupStoryTranscriptionCron()
 
 	appcron.MountPostController(app.Group("/cron"))
-	appcron.MountStoryController(app.Group("/cron"))
+	//appcron.MountStoryController(app.Group("/cron"))
 
 	fmt.Println("Server is running on :8080")
 	log.Fatal(app.Listen(":8080"))

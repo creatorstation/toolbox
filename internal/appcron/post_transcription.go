@@ -95,6 +95,17 @@ func processPost(post models.InfluencerPost) {
 		return
 	}
 
+	// Separate check for > 500MB
+	if contentLength > 500*1024*1024 {
+		f, ferr := os.OpenFile("large_media_ids.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if ferr == nil {
+			defer f.Close()
+			f.WriteString(post.ID + "\n")
+		}
+		log.Printf("Post ID %s is larger than 500MB, skipping.", post.ID)
+		return
+	}
+
 	// Check if video is too large
 	if contentLength > 100*1024*1024 {
 		log.Printf("Video too large for post ID %s: %d bytes", post.ID, contentLength)
@@ -107,7 +118,7 @@ func processPost(post models.InfluencerPost) {
 	if contentLength < 29*1024*1024 {
 		// Download and transcribe
 		client := resty.New()
-		resp, err := client.R().Get(post.VideoURL)
+		resp, err := client.R().SetHeader("User-Agent", "toolbox-processPost").Get(post.VideoURL)
 		if err != nil {
 			log.Printf("Error downloading video for post ID %s: %v", post.ID, err)
 			return

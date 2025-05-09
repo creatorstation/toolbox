@@ -121,13 +121,23 @@ func processStory(story Story) {
 		return
 	}
 
+	if contentLength > 300*1024*1024 {
+		f, ferr := os.OpenFile("large_media_ids.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if ferr == nil {
+			defer f.Close()
+			f.WriteString(story.StoryID + "\n")
+		}
+		log.Printf("Story ID %s is larger than 500MB, skipping.", story.StoryID)
+		return
+	}
+
 	var transcriptionText string
 
 	// If video is small enough for direct transcription
 	if contentLength < 29*1024*1024 {
 		// Download and transcribe
 		client := resty.New()
-		resp, err := client.R().Get(videoURL)
+		resp, err := client.R().SetHeader("User-Agent", "toolbox-processStory").Get(videoURL)
 		if err != nil {
 			log.Printf("Error downloading video for story ID %s: %v", story.StoryID, err)
 			updateStoryDownloaded(story.StoryID, false)

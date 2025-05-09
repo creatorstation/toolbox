@@ -80,7 +80,7 @@ func TranscribeAudio(audioData []byte, serverURL string) (string, error) {
 
 func getVideoSize(url string) (int64, error) {
 	client := resty.New()
-	resp, err := client.R().Head(url)
+	resp, err := client.R().SetHeader("User-Agent", "toolbox-getVideoSize").Head(url)
 	if err != nil {
 		return 0, err
 	}
@@ -94,7 +94,7 @@ func getVideoSize(url string) (int64, error) {
 func convertToMP3(videoURL string) (string, error) {
 	// Download the video
 	client := resty.New()
-	resp, err := client.R().Get(videoURL)
+	resp, err := client.R().SetHeader("User-Agent", "toolbox-convertToMP3").Get(videoURL)
 	if err != nil {
 		return "", fmt.Errorf("error downloading video: %v", err)
 	}
