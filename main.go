@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/creatorstation/toolbox/internal/appcron"
 	"github.com/creatorstation/toolbox/internal/media"
 	"github.com/creatorstation/toolbox/internal/misc"
 	"github.com/gofiber/fiber/v2"
@@ -36,12 +35,6 @@ func main() {
 
 	media.MountController(app.Group("/media"))
 	misc.MountController(app.Group("/misc"))
-
-	appcron.SetupPostTranscriptionCron()
-	// appcron.SetupStoryTranscriptionCron()
-
-	appcron.MountPostController(app.Group("/cron"))
-	//appcron.MountStoryController(app.Group("/cron"))
 
 	fmt.Println("Server is running on :8080")
 	log.Fatal(app.Listen(":8080"))
