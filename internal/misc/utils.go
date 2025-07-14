@@ -129,8 +129,12 @@ func createPlaywrightBrowser() (*playwright.Playwright, playwright.Browser, erro
 func waitForCategoryResponse(page playwright.Page) error {
 	responseChan := make(chan bool, 1)
 	page.On("response", func(res playwright.Response) {
-		responseURL := res.URL()
-		if strings.Contains(responseURL, "/stats/category") && res.Status() == 200 {
+		pData, err := res.Request().PostData()
+		if err != nil {
+			fmt.Println("Error getting post data", err)
+			return
+		}
+		if strings.Contains(pData, "\"operationName\":\"Influencer\"") && res.Status() == 200 {
 			responseChan <- true
 		}
 	})
