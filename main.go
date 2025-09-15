@@ -37,5 +37,5 @@ func main() {
 	misc.MountController(app.Group("/misc"))
 
 	fmt.Println("Server is running on :8080")
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(":8081"))
 }

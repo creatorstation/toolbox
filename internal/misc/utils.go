@@ -17,6 +17,7 @@ const (
 	cachePurgeInterval  = 5 * time.Minute
 	cacheDir            = "./screenshot_cache"
 	targetURL           = "https://agi.creatorstation.com/influencers/%s?tab=3"
+	targetURLTab4       = "https://agi.creatorstation.com/influencers/%s?tab=4"
 )
 
 func init() {
@@ -107,6 +108,64 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 	return screenshot, nil
 }
 
+func takeScreenshotTab4(username, elementID string) ([]byte, error) {
+	pw, browser, err := createPlaywrightBrowser()
+	if err != nil {
+		return nil, err
+	}
+	defer pw.Stop()
+	defer browser.Close()
+
+	context, err := browser.NewContext(playwright.BrowserNewContextOptions{
+		DeviceScaleFactor: playwright.Float(2.0),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create context: %w", err)
+	}
+	defer context.Close()
+
+	page, err := context.NewPage()
+	if err != nil {
+		return nil, fmt.Errorf("could not create page: %w", err)
+	}
+
+	err = page.SetExtraHTTPHeaders(map[string]string{
+		"Authorization": os.Getenv("AGI_TOKEN"),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not set headers: %w", err)
+	}
+
+	url := fmt.Sprintf(targetURLTab4, username)
+	if _, err = page.Goto(url); err != nil {
+		return nil, fmt.Errorf("could not navigate to page: %w", err)
+	}
+
+	if err := waitForCategoryResponse(page); err != nil {
+		return nil, err
+	}
+
+	selector := fmt.Sprintf("#%s", elementID)
+	elementHandle, err := page.WaitForSelector(selector)
+	if err != nil {
+		return nil, fmt.Errorf("could not find element: %w", err)
+	}
+
+	_, err = elementHandle.EvalOnSelectorAll("h5", "h5Elements => h5Elements.forEach(h5 => h5.remove())")
+	if err != nil {
+		return nil, fmt.Errorf("could not remove h5 elements: %w", err)
+	}
+
+	screenshot, err := elementHandle.Screenshot(playwright.ElementHandleScreenshotOptions{
+		Scale: playwright.ScreenshotScaleDevice,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not take screenshot: %w", err)
+	}
+
+	return screenshot, nil
+}
+
 func createPlaywrightBrowser() (*playwright.Playwright, playwright.Browser, error) {
 	pw, err := playwright.Run()
 	if err != nil {
@@ -114,7 +173,7 @@ func createPlaywrightBrowser() (*playwright.Playwright, playwright.Browser, erro
 	}
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless:        playwright.Bool(true),
+		Headless:        playwright.Bool(false),
 		Args:            []string{"--disable-gpu", "--no-sandbox", "--no-zygote"},
 		ChromiumSandbox: playwright.Bool(false),
 	})
