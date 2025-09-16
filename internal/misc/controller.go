@@ -107,19 +107,21 @@ func GetAGIScreenshotTab4(c *fiber.Ctx) error {
 	username := c.Query("username")
 	elementID := c.Query("elementId")
 	selectedDate := c.Query("selectedDate")
+	labelFilters := c.Query("labelFilters")
+	withLinkStory := c.Query("withLinkStory")
 
 	if username == "" || elementID == "" {
 		return c.Status(fiber.StatusBadRequest).SendString("Missing username or elementId parameter")
 	}
 
-	cacheKey := fmt.Sprintf("%s_%s_tab4_%s", username, elementID, selectedDate)
+	cacheKey := fmt.Sprintf("%s_%s_tab4_%s_%s_%s", username, elementID, selectedDate, labelFilters, withLinkStory)
 
 	if imgBytes, found := getCachedScreenshot(cacheKey); found {
 		c.Set("Content-Type", "image/png")
 		return c.Send(imgBytes)
 	}
 
-	imgBytes, err := takeScreenshotTab4(username, elementID, selectedDate)
+	imgBytes, err := takeScreenshotTab4(username, elementID, selectedDate, labelFilters, withLinkStory)
 	if err != nil {
 		log.Printf("Screenshot tab4 error: %v", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to capture screenshot")

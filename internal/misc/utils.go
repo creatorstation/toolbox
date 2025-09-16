@@ -108,7 +108,7 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 	return screenshot, nil
 }
 
-func takeScreenshotTab4(username, elementID, selectedDate string) ([]byte, error) {
+func takeScreenshotTab4(username, elementID, selectedDate, labelFilters, withLinkStory string) ([]byte, error) {
 	pw, browser, err := createPlaywrightBrowser()
 	if err != nil {
 		return nil, err
@@ -162,13 +162,51 @@ func takeScreenshotTab4(username, elementID, selectedDate string) ([]byte, error
 		return nil, fmt.Errorf("could not select option via JavaScript: %w", err)
 	}
 
-	time.Sleep(1 * time.Second)
+	// Handle withLinkStory checkbox - click element at index 6 if true
+	if withLinkStory == "true" {
+		_, err = page.Evaluate(`() => {
+			const elements = document.querySelectorAll('.form-multi-select-option.form-multi-select-option-with-checkbox');
+			if (elements.length > 6) {
+				elements[6].click();
+			}
+		}`)
+		if err != nil {
+			return nil, fmt.Errorf("could not click withLinkStory checkbox at index 6: %w", err)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	// Handle labelFilters checkboxes
+	if labelFilters != "" {
+		filters := strings.Split(labelFilters, ",")
+		for _, filter := range filters {
+			filter = strings.TrimSpace(filter)
+			_, err = page.Evaluate(fmt.Sprintf(`() => {
+				const elements = document.querySelectorAll('.form-multi-select-option.form-multi-select-option-with-checkbox');
+				for (let element of elements) {
+					const text = (element.innerText || element.textContent).trim();
+					if (text === '%s') {
+						element.click();
+						break;
+					}
+				}
+			}`, filter))
+			if err != nil {
+				return nil, fmt.Errorf("could not click label filter checkbox for '%s': %w", filter, err)
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+
+	time.Sleep(10 * time.Second)
 
 	selector := fmt.Sprintf("#%s", elementID)
 	elementHandle, err := page.WaitForSelector(selector)
 	if err != nil {
 		return nil, fmt.Errorf("could not find element: %w", err)
 	}
+
+	time.Sleep(10 * time.Second)
 
 	_, err = elementHandle.EvalOnSelectorAll("h5", "h5Elements => h5Elements.forEach(h5 => h5.remove())")
 	if err != nil {
