@@ -198,7 +198,7 @@ func takeScreenshotTab4(username, elementID, selectedDate, labelFilters, withLin
 		}
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	selector := fmt.Sprintf("#%s", elementID)
 	elementHandle, err := page.WaitForSelector(selector)
@@ -206,7 +206,7 @@ func takeScreenshotTab4(username, elementID, selectedDate, labelFilters, withLin
 		return nil, fmt.Errorf("could not find element: %w", err)
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, err = elementHandle.EvalOnSelectorAll("h5", "h5Elements => h5Elements.forEach(h5 => h5.remove())")
 	if err != nil {
