@@ -192,7 +192,7 @@ func createPlaywrightBrowser() (*playwright.Playwright, playwright.Browser, erro
 	}
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless:        playwright.Bool(false),
+		Headless:        playwright.Bool(true),
 		Args:            []string{"--disable-gpu", "--no-sandbox", "--no-zygote"},
 		ChromiumSandbox: playwright.Bool(false),
 	})
