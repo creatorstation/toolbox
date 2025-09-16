@@ -108,7 +108,7 @@ func takeScreenshot(username, elementID string) ([]byte, error) {
 	return screenshot, nil
 }
 
-func takeScreenshotTab4(username, elementID string) ([]byte, error) {
+func takeScreenshotTab4(username, elementID, selectedDate string) ([]byte, error) {
 	pw, browser, err := createPlaywrightBrowser()
 	if err != nil {
 		return nil, err
@@ -145,6 +145,25 @@ func takeScreenshotTab4(username, elementID string) ([]byte, error) {
 		return nil, err
 	}
 
+	selectSelector := "select"
+	if _, err := page.WaitForSelector(selectSelector); err != nil {
+		return nil, fmt.Errorf("could not find select element: %w", err)
+	}
+
+	time.Sleep(1 * time.Second)
+
+	_, err = page.Evaluate(fmt.Sprintf(`() => {
+		const select = document.querySelector('select');
+		select.focus();
+		select.value = '%s';
+		select.dispatchEvent(new Event('change', { bubbles: true }));
+	}`, selectedDate))
+	if err != nil {
+		return nil, fmt.Errorf("could not select option via JavaScript: %w", err)
+	}
+
+	time.Sleep(1 * time.Second)
+
 	selector := fmt.Sprintf("#%s", elementID)
 	elementHandle, err := page.WaitForSelector(selector)
 	if err != nil {
@@ -173,7 +192,7 @@ func createPlaywrightBrowser() (*playwright.Playwright, playwright.Browser, erro
 	}
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless:        playwright.Bool(true),
+		Headless:        playwright.Bool(false),
 		Args:            []string{"--disable-gpu", "--no-sandbox", "--no-zygote"},
 		ChromiumSandbox: playwright.Bool(false),
 	})
